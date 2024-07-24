@@ -239,34 +239,6 @@ class BASNetImageProcessor(BaseImageProcessor):
             dn = (d - mi) / ((ma - mi) + torch.finfo(torch.float32).eps)
             return dn
 
-        # prediction = _norm_output(prediction)
-        # prediction = prediction.squeeze()
-        # prediction_np = prediction.cpu().numpy()
-
-        # image = Image.fromarray(prediction_np * 255).convert("RGB")
-        # image = image.resize((width, height), resample=Image.Resampling.BILINEAR)
-
-        # return image
-
-        # breakpoint()
-
-        # output = F.interpolate(output, (height, width), mode="bilinear")
-        # output = output.squeeze(dim=0)
-
-        # output = _norm_output(output)
-
-        # # Add 0.5 after unnormalizing to [0, 255] to round to nearest integer
-        # output = output * 255 + 0.5
-        # output = output.clamp(0, 255)
-
-        # # shape: (C=1, W, H) -> (W, H, C=1)
-        # output = output.permute(1, 2, 0)
-        # # shape: (W, H, C=3)
-        # output = output.repeat(1, 1, 3)
-
-        # output_np = output.cpu().numpy().astype(np.uint8)
-        # return Image.fromarray(output_np)
-
         prediction = _norm_prediction(prediction)
         prediction = prediction.squeeze()
         prediction = prediction * 255 + 0.5
