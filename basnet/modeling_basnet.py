@@ -1,6 +1,5 @@
 import logging
-import os
-from typing import Tuple
+from typing import Optional, Tuple
 
 import torch
 import torch.nn as nn
@@ -149,6 +148,8 @@ class BasicBlock(nn.Module):
 
 
 class BASNetModel(PreTrainedModel):
+    config_class = BASNetConfig
+
     def __init__(self, config: BASNetConfig) -> None:
         super().__init__(config)
 
@@ -463,8 +464,14 @@ class BASNetModel(PreTrainedModel):
         )
 
 
-def convert_from_checkpoint(checkpoint_path: os.PathLike) -> BASNetModel:
-    config = BASNetConfig()
+def convert_from_checkpoint(
+    repo_id: str, filename: str, config: Optional[BASNetConfig] = None
+) -> BASNetModel:
+    from huggingface_hub import hf_hub_download
+
+    checkpoint_path = hf_hub_download(repo_id=repo_id, filename=filename)
+
+    config = config or BASNetConfig()
     model = BASNetModel(config)
 
     logger.info(f"Loading checkpoint from {checkpoint_path}")

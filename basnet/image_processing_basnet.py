@@ -1,10 +1,8 @@
-from typing import Tuple, Union
+from typing import Dict, Tuple, Union
 
 import cv2
 import numpy as np
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 from PIL import Image
 from PIL.Image import Image as PilImage
 from torchvision import transforms
@@ -19,7 +17,7 @@ class RescaleT(object):
         assert isinstance(output_size, (int, tuple))
         self.output_size = output_size
 
-    def __call__(self, sample):
+    def __call__(self, sample) -> Dict[str, np.ndarray]:
         image, label = sample["image"], sample["label"]
 
         h, w = image.shape[:2]
@@ -63,7 +61,7 @@ class RescaleT(object):
 class ToTensorLab(object):
     """Convert ndarrays in sample to Tensors."""
 
-    def __init__(self, flag=0):
+    def __init__(self, flag: int = 0) -> None:
         self.flag = flag
 
     def __call__(self, sample):
@@ -76,7 +74,6 @@ class ToTensorLab(object):
         else:
             label = label / np.max(label)
 
-        # print('self.flag:', self.flag) # Default: 0
         # change the color space
         if self.flag == 2:  # with rgb and Lab colors
             tmpImg = np.zeros((image.shape[0], image.shape[1], 6))
@@ -190,6 +187,15 @@ class ToTensorLab(object):
         return {"image": torch.from_numpy(tmpImg), "label": torch.from_numpy(tmpLbl)}
 
 
+def apply_transform(
+    data: Dict[str, np.ndarray], rescale_size: int, to_tensor_lab_flag: int
+) -> Dict[str, torch.Tensor]:
+    transform = transforms.Compose(
+        [RescaleT(output_size=rescale_size), ToTensorLab(flag=to_tensor_lab_flag)]
+    )
+    return transform(data)  # type: ignore
+
+
 class BASNetImageProcessor(BaseImageProcessor):
     model_input_names = ["pixel_values"]
 
@@ -197,9 +203,8 @@ class BASNetImageProcessor(BaseImageProcessor):
         self, rescale_size: int = 256, to_tensor_lab_flag: int = 0, **kwargs
     ) -> None:
         super().__init__(**kwargs)
-        self.transform = transforms.Compose(
-            [RescaleT(output_size=rescale_size), ToTensorLab(flag=to_tensor_lab_flag)]
-        )
+        self.rescale_size = rescale_size
+        self.to_tensor_lab_flag = to_tensor_lab_flag
 
     def preprocess(self, images: ImageInput, **kwargs) -> BatchFeature:
         if not isinstance(images, PilImage):
@@ -211,7 +216,11 @@ class BASNetImageProcessor(BaseImageProcessor):
         label_npy = np.zeros((height, width), dtype=np.uint8)
 
         assert image_npy.shape[-1] == 3
-        output = self.transform({"image": image_npy, "label": label_npy})
+        output = apply_transform(
+            {"image": image_npy, "label": label_npy},
+            rescale_size=self.rescale_size,
+            to_tensor_lab_flag=self.to_tensor_lab_flag,
+        )
         image = output["image"]
 
         assert isinstance(image, torch.Tensor)

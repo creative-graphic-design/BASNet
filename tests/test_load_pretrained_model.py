@@ -2,7 +2,6 @@ import pathlib
 
 import pytest
 import torch
-from huggingface_hub import hf_hub_download
 from PIL import Image, ImageChops
 
 from basnet.image_processing_basnet import BASNetImageProcessor
@@ -15,9 +14,8 @@ def repo_id() -> str:
 
 
 @pytest.fixture
-def checkpoint_path(repo_id: str) -> pathlib.Path:
-    ckpt_path = hf_hub_download(repo_id=repo_id, filename="basnet.pth")
-    return pathlib.Path(ckpt_path)
+def checkpoint_filename() -> str:
+    return "basnet.pth"
 
 
 @pytest.fixture
@@ -40,8 +38,11 @@ def device() -> torch.device:
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def test_load_pretrained_model(checkpoint_path: pathlib.Path):
-    model = convert_from_checkpoint(checkpoint_path)
+def test_load_pretrained_model(repo_id: str, checkpoint_filename: str):
+    model = convert_from_checkpoint(
+        repo_id=repo_id,
+        filename=checkpoint_filename,
+    )
     assert isinstance(model, BASNetModel)
     assert model.training is False
 
