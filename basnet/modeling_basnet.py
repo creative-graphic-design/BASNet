@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class BASNetModelOutput(ModelOutput):
+class BasNetSideOutput(ModelOutput):
     dout: torch.Tensor
     d1: Optional[torch.Tensor] = None
     d2: Optional[torch.Tensor] = None
@@ -23,6 +23,11 @@ class BASNetModelOutput(ModelOutput):
     d5: Optional[torch.Tensor] = None
     d6: Optional[torch.Tensor] = None
     db: Optional[torch.Tensor] = None
+
+
+@dataclass
+class BASNetModelOutput(ModelOutput):
+    activated: BasNetSideOutput
 
 
 class RefUnet(nn.Module):
@@ -466,27 +471,21 @@ class BASNetModel(PreTrainedModel):
         d6_act = torch.sigmoid(d6)
         db_act = torch.sigmoid(db)
 
+        side_outputs = (
+            dout_act,
+            d1_act,
+            d2_act,
+            d3_act,
+            d4_act,
+            d5_act,
+            d6_act,
+            db_act,
+        )
         if not return_dict:
-            return (
-                dout_act,
-                d1_act,
-                d2_act,
-                d3_act,
-                d4_act,
-                d5_act,
-                d6_act,
-                db_act,
-            )
+            return (side_outputs,)
 
         return BASNetModelOutput(
-            dout=dout_act,
-            d1=d1_act,
-            d2=d2_act,
-            d3=d3_act,
-            d4=d4_act,
-            d5=d5_act,
-            d6=d6_act,
-            db=db_act,
+            activated=BasNetSideOutput(*side_outputs),
         )
 
 

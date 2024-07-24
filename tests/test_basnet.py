@@ -50,7 +50,7 @@ def test_basnet(
     with torch.no_grad():
         outputs = model(**inputs, return_dict=return_dict)
 
-    prediction = outputs.dout if return_dict else outputs[0]
+    prediction = outputs.activated.dout if return_dict else outputs[0][0]
 
     assert list(prediction.shape) == [1, 1, 256, 256]
 
