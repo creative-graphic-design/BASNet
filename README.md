@@ -56,7 +56,7 @@ inputs = {k: v.to(device) for k, v in inputs.items()}
 #
 with torch.no_grad():
     outputs = model(**inputs)
-prediction = outputs[0]
+prediction = outputs[0][0]
 assert list(prediction.shape) == [1, 1, 256, 256]
 
 #
