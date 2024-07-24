@@ -1,3 +1,50 @@
+# BASNet, 🤗 Transformers-ready ver.
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github.com/creative-graphic-design/BASNet/blob/support-transformers-api/demo/BASNet_test.ipynb)
+
+```python
+import torch
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+from transformers import AutoImageProcessor, AutoModel
+
+repo_id = "creative-graphic-design/BASNet"
+
+processor = AutoImageProcessor.from_pretrained(
+    repo_id,
+    trust_remote_code=True,
+)
+model = AutoModel.from_pretrained(
+    repo_id,
+    trust_remote_code=True,
+)
+
+import requests
+from PIL import Image
+
+image = Image.open(
+    requests.get(
+        "https://raw.githubusercontent.com/xuebinqin/BASNet/master/test_data/test_images/0003.jpg",
+        stream=True,
+    ).raw
+)
+
+model = model.to(device)
+inputs = {k: v.to(device) for k, v in inputs.items()}
+
+with torch.no_grad():
+    outputs = model(**inputs)
+prediction = outputs[0]
+assert list(prediction.shape) == [1, 1, 256, 256]
+
+image = processor.postprocess(prediction, width=width, height=height)
+image  # Now you can visualize the output image
+```
+
+
+---
+
 # BASNet (New Version May 2nd, 2021)
 
 '[Boundary-Aware Segmentation Network for
