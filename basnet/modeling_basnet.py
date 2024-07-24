@@ -1,14 +1,28 @@
 import logging
-from typing import Optional, Tuple
+from dataclasses import dataclass
+from typing import Optional, Tuple, Union
 
 import torch
 import torch.nn as nn
 import torchvision
 from transformers.modeling_utils import PreTrainedModel
+from transformers.utils import ModelOutput
 
 from .configuration_basnet import BASNetConfig
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class BASNetModelOutput(ModelOutput):
+    dout: torch.Tensor
+    d1: Optional[torch.Tensor] = None
+    d2: Optional[torch.Tensor] = None
+    d3: Optional[torch.Tensor] = None
+    d4: Optional[torch.Tensor] = None
+    d5: Optional[torch.Tensor] = None
+    d6: Optional[torch.Tensor] = None
+    db: Optional[torch.Tensor] = None
 
 
 class RefUnet(nn.Module):
@@ -352,17 +366,8 @@ class BASNetModel(PreTrainedModel):
         self.post_init()
 
     def forward(
-        self, pixel_values: torch.Tensor
-    ) -> Tuple[
-        torch.Tensor,
-        torch.Tensor,
-        torch.Tensor,
-        torch.Tensor,
-        torch.Tensor,
-        torch.Tensor,
-        torch.Tensor,
-        torch.Tensor,
-    ]:
+        self, pixel_values: torch.Tensor, return_dict: Optional[bool] = None
+    ) -> Union[Tuple, BASNetModelOutput]:
         hx = pixel_values
 
         ## -------------Encoder-------------
@@ -452,15 +457,36 @@ class BASNetModel(PreTrainedModel):
         ## -------------Refine Module-------------
         dout = self.refunet(d1)  # 256
 
-        return (
-            torch.sigmoid(dout),
-            torch.sigmoid(d1),
-            torch.sigmoid(d2),
-            torch.sigmoid(d3),
-            torch.sigmoid(d4),
-            torch.sigmoid(d5),
-            torch.sigmoid(d6),
-            torch.sigmoid(db),
+        dout_act = torch.sigmoid(dout)
+        d1_act = torch.sigmoid(d1)
+        d2_act = torch.sigmoid(d2)
+        d3_act = torch.sigmoid(d3)
+        d4_act = torch.sigmoid(d4)
+        d5_act = torch.sigmoid(d5)
+        d6_act = torch.sigmoid(d6)
+        db_act = torch.sigmoid(db)
+
+        if not return_dict:
+            return (
+                dout_act,
+                d1_act,
+                d2_act,
+                d3_act,
+                d4_act,
+                d5_act,
+                d6_act,
+                db_act,
+            )
+
+        return BASNetModelOutput(
+            dout=dout_act,
+            d1=d1_act,
+            d2=d2_act,
+            d3=d3_act,
+            d4=d4_act,
+            d5=d5_act,
+            d6=d6_act,
+            db=db_act,
         )
 
 

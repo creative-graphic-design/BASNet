@@ -1,4 +1,5 @@
 import pathlib
+from typing import Optional
 
 import pytest
 import torch
@@ -16,6 +17,10 @@ from basnet import BASNetImageProcessor, convert_from_checkpoint
         ("0012.jpg", "0012.png"),
     ),
 )
+@pytest.mark.parametrize(
+    argnames="return_dict",
+    argvalues=(True, False, None),
+)
 def test_basnet(
     repo_id: str,
     checkpoint_filename: str,
@@ -24,6 +29,7 @@ def test_basnet(
     input_filename: str,
     expected_filename: str,
     device: torch.device,
+    return_dict: Optional[bool],
 ):
     model = convert_from_checkpoint(
         repo_id=repo_id,
@@ -42,10 +48,13 @@ def test_basnet(
     inputs = {k: v.to(device) for k, v in inputs.items()}
 
     with torch.no_grad():
-        output, *_ = model(**inputs)
-    assert list(output.shape) == [1, 1, 256, 256]
+        outputs = model(**inputs, return_dict=return_dict)
 
-    image = processor.postprocess(output, width=width, height=height)
+    prediction = outputs.dout if return_dict else outputs[0]
+
+    assert list(prediction.shape) == [1, 1, 256, 256]
+
+    image = processor.postprocess(prediction, width=width, height=height)
 
     expected_image = Image.open(output_filepath)
 
