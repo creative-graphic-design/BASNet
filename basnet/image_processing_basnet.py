@@ -6,8 +6,7 @@ import torch
 from PIL import Image
 from PIL.Image import Image as PilImage
 from torchvision import transforms
-from transformers.image_processing_base import BatchFeature
-from transformers.image_processing_utils import BaseImageProcessor
+from transformers.image_processing_utils import BaseImageProcessor, BatchFeature
 from transformers.image_utils import ImageInput
 
 
