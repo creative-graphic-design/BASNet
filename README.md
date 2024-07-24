@@ -1,6 +1,6 @@
 # BASNet, 🤗 Transformers-ready ver.
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github.com/creative-graphic-design/BASNet/blob/support-transformers-api/demo/BASNet_test.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/creative-graphic-design/BASNet/blob/support-transformers-api/demo/BASNet_test.ipynb)
 
 ```python
 import torch
