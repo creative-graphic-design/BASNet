@@ -3,10 +3,16 @@
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/creative-graphic-design/BASNet/blob/support-transformers-api/demo/BASNet_test.ipynb)
 
 ```python
+#
+# Get appropriate device
+#
 import torch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+#
+# Load the model and the processor
+#
 from transformers import AutoImageProcessor, AutoModel
 
 repo_id = "creative-graphic-design/BASNet"
@@ -20,6 +26,9 @@ model = AutoModel.from_pretrained(
     trust_remote_code=True,
 )
 
+#
+# Download an image
+#
 import requests
 from PIL import Image
 
@@ -30,14 +39,29 @@ image = Image.open(
     ).raw
 )
 
+#
+# Preprocess the image
+#
+width, height = image.size
+inputs = processor(images=image)
+
+#
+# Move the model and the inputs to the appropriate device
+#
 model = model.to(device)
 inputs = {k: v.to(device) for k, v in inputs.items()}
 
+#
+# Run the model
+#
 with torch.no_grad():
     outputs = model(**inputs)
 prediction = outputs[0]
 assert list(prediction.shape) == [1, 1, 256, 256]
 
+#
+# Postprocess the prediction
+#
 image = processor.postprocess(prediction, width=width, height=height)
 image  # Now you can visualize the output image
 ```
